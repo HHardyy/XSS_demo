@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title><%= title %></title>
+	<link rel='stylesheet' href='/stylesheets/style.css' />
+	<script src="../javascripts/domParse.js" charset="utf-8"></script>
+	<script src="../javascripts/encode.js" charset="utf-8"></script>
+	<script>
+		var parse = function(str){
+    		var results = '';
+    		try {
+    			//domParse.js中的HTMLParse方法解码（反转义），encode.js提供的he对象的方法unescape
+    			HTMLParser(he.unescape(str,{strict: true}),{
+    				//tag标签,attrs属性,unary单标签(比如img标签)还是配对标签
+    				start: function(tag,attrs,unary){
+    					//过滤的标签
+    					if(tag == 'script' || tag == 'style' || tag == 'link' || tag == 'frame' || tag == 'iframe' || tag == 'img') return;
+    					results += '<'+tag;
+    					/*for(var i=0,len = attrs.length;i < len;i++) {
+    						results += " "+attrs[i].name + '="' + attrs[i].escaped + '"';
+    					}*/
+    					results += (unary?"/":"")+">";
+    				},
+    				end: function(tag){
+    					results += "</" + tag + ">";
+    				},
+    				chars: function(text){
+    					results += text;
+    				},
+    				comment: function(text){
+    					results += "<!--" + text + "-->";
+    				}
+    			});
+    			return results;
+    		} catch(e) {
+    			console.log(e);
+    		} finally {
+    		}
+    	}
+    </script>
+</head>
+<body>
+	<h1><%= title %></h1>
+	<p>Welcome to <%= title %></p>
+	<textarea name="name" cols="30" rows="10" id="txt">
+		<p>HHardyy-sks<img src="null" alt="" onerror="alert("img")"></p>
+	</textarea>
+	<button type="button" name="button" id="btn">评论</button>
+	<button type="button" name="button" id="get">获取评论</button>
+
+	<script>
+		var oBtn=document.querySelector("#btn");
+		var oGet=document.querySelector("#get");
+		var oTxt=document.querySelector("#txt");
+
+		oBtn.addEventListener('click', function(){
+			var xhr=new XMLHttpRequest();
+			var url='/com?com='+oTxt.value;
+			xhr.open('GET',url,true);
+			xhr.onreadystatechange=function(){
+				if (xhr.readyState==4) {
+					if (xhr.status==200) {
+						console.log(xhr);
+					}else{
+						console.log("error");
+					}
+				}
+			}
+			xhr.send();
+		});
+		oGet.addEventListener('click',function(){
+			var xhr=new XMLHttpRequest();
+			var url='/getcom';
+			xhr.open('GET',url,true);
+			xhr.onreadystatechange=function(){
+				if (xhr.readyState==4) {
+					if (xhr.status==200) {
+						var con=parse(JSON.parse(xhr.response).com);
+						var oSpan=document.createElement('span');
+						oSpan.innerHTML=con;
+						document.body.appendChild(oSpan);
+					}else{
+						console.log("error");
+					}
+				}
+			}
+			xhr.send();
+		});
+	</script>
+</body>
+</html>
